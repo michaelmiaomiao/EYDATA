@@ -1,0 +1,679 @@
+
+
+
+
+0.872659 98 
+0.8731361 71 
+0.8728379 56 
+
+```{r}
+library("caret")
+library("dplyr")
+ # library("xgboost")
+library("ranger")
+library("rsample")
+library("randomForest")
+```
+```{r}
+xgb.fit.final2
+```
+
+
+```{r}
+# n <- new
+# n=new
+
+n$time_entry_plus1 <- n$time_entry+10000
+n$time_entry_plus2 <- n$time_entry+20000
+n$time_entry_plus3 <- n$time_entry+30000
+n$time_entry_min1 <- n$time_entry-10000
+n$time_entry_min2 <- n$time_entry-20000
+n$time_entry_min3 <- n$time_entry-30000
+
+
+
+n$time_exit_plus1 <- n$time_exit+10000
+n$time_exit_plus2 <- n$time_exit+20000
+n$time_exit_plus3 <- n$time_exit+30000
+n$time_exit_min1 <- n$time_exit-10000
+n$time_exit_min2 <- n$time_exit-20000
+n$time_exit_min3 <- n$time_exit-30000
+
+n$x_entry_plus1 <- n$x_entry+1000000
+n$x_entry_plus2 <- n$x_entry+2000000
+n$x_entry_plus3 <- n$x_entry+3000000
+n$x_entry_min3 <- n$x_entry-3000000
+n$x_entry_min2 <- n$x_entry-2000000
+n$x_entry_min1 <- n$x_entry-1000000
+
+
+n$y_entry_plus1 <- n$y_entry+1000000
+n$y_entry_plus2 <- n$y_entry+2000000
+n$y_entry_plus3 <- n$y_entry+3000000
+n$y_entry_min3 <- n$y_entry-3000000
+n$y_entry_min2 <- n$y_entry-2000000
+n$y_entry_min1 <- n$y_entry-1000000
+n %>% dim()
+new=n
+# new <- read.csv("final2.csv")
+```
+
+```{r}
+# set.seed(123)
+# 
+# train.index <- initial_split(new,prop=0.75)
+# new_train <- training(train.index)
+# new_test <- testing(train.index)
+# dim(new_train)
+# dim(new_test)
+ set.seed(16)
+   # new=use
+   #  new=n
+train.index <- createDataPartition(new$target,p = .75, list = FALSE)
+ new_train <- new[train.index,]
+ new_test <- new[-train.index,]
+
+ 
+ features_train <- as.matrix(new_train[,c(4,5,6,7,8,9,11,12,13,14,16,17,18,19,20,21)])
+response_train <- as.matrix(new_train[,15])
+# names(new)
+
+features_test <- as.matrix(new_test[,c(4,5,6,7,8,9,11,12,13,14,16,17,18,19,20,21)])
+response_test <- as.matrix(new_test[,15]) 
+features_train %>% dim()
+
+```
+
+```{r}
+params <- list(
+  eta = .1,
+    max_depth = 5,
+    min_child_weight = 7,
+    subsample = .85,
+    colsample_bytree = .9
+)
+
+
+set.seed(16)
+# train final model
+xgb.fit.final2 <- xgboost(
+  params = params,
+  data = features_train,
+  label = response_train,
+  nrounds = 410,
+  objective = "reg:linear",
+  verbose = 0
+)
+
+
+gbpre <- predict(xgb.fit.final2,features_test)
+ gbpre <- ifelse(gbpre>0.5,1,0)
+table(gbpre)
+ggerror <- mean(gbpre!=response_test)
+1-ggerror
+# xgb.fit.final2
+```
+
+```{r}
+set.seed(16)
+
+xgb.fit1 <- xgb.cv(
+params = params,
+  data = features_train,
+  label = response_train,
+  nrounds = 1000,
+  nfold = 5,
+  objective = "reg:linear",  # for regression models
+  verbose = 0               # silent,
+)
+set.seed(16)
+
+
+
+
+
+```
+```{r}
+xgb.fit1$evaluation_log %>%
+  dplyr::summarise(
+    ntrees.train = which(train_rmse_mean == min(train_rmse_mean))[1],
+    rmse.train   = min(train_rmse_mean),
+    ntrees.test  = which(test_rmse_mean == min(test_rmse_mean))[1],
+    rmse.test   = min(test_rmse_mean)
+  )
+
+
+```
+ntrees.train
+<int>
+rmse.train
+<dbl>
+ntrees.test
+<int>
+rmse.test
+<dbl>
+1000	0.1264198	32	0.313551	
+
+1000	0.1314322	36	0.3136018	
+
+```{r}
+ggplot(xgb.fit1$evaluation_log) +
+  geom_line(aes(iter, train_rmse_mean), color = "red") +
+  geom_line(aes(iter, test_rmse_mean), color = "blue")
+```
+
+```{r}
+# reproducibility
+set.seed(123)
+
+xgb.fit2 <- xgb.cv(
+  data = features_train,
+  label = response_train,
+  nrounds = 1000,
+  nfold = 5,
+  objective = "reg:linear",  # for regression models
+  verbose = 0,               # silent,
+  early_stopping_rounds = 20 # stop if no improvement for 10 consecutive trees
+)
+
+# plot error vs number trees
+ggplot(xgb.fit2$evaluation_log) +
+  geom_line(aes(iter, train_rmse_mean), color = "red") +
+  geom_line(aes(iter, test_rmse_mean), color = "blue")
+```
+
+```{r}
+# create parameter list
+  params <- list(
+    eta = .1,
+    max_depth = 5,
+    min_child_weight = 7,
+    subsample = .8,
+    colsample_bytree = .9
+  )
+
+# reproducibility
+set.seed(16)
+
+# train model
+xgb.fit3 <- xgb.cv(
+  params = params,
+  data = features_train,
+  label = response_train,
+  nrounds = 410,
+  nfold = 5,
+  objective = "reg:linear",  # for regression models
+  verbose = 0,               # silent,
+  early_stopping_rounds = 10 # stop if no improvement for 10 consecutive trees
+)
+
+```
+```{r}
+xgb.fit3$evaluation_log %>%
+  dplyr::summarise(
+    ntrees.train = which(train_rmse_mean == min(train_rmse_mean))[1],
+    rmse.train   = min(train_rmse_mean),
+    ntrees.test  = which(test_rmse_mean == min(test_rmse_mean))[1],
+    rmse.test   = min(test_rmse_mean)
+  )
+
+# 0.3134256	
+```
+```{r}
+hyper_grid <- expand.grid(
+  eta = c( .1, .3),
+  max_depth = c(3),
+  min_child_weight = c(1, 3),
+  subsample = c(.65, .8), 
+  colsample_bytree = c(1),
+  optimal_trees = 0,               # a place to dump results
+  min_RMSE = 0                     # a place to dump results
+)
+
+nrow(hyper_grid)
+```
+```{r}
+# grid search 
+for(i in 1:nrow(hyper_grid)) {
+  
+  # create parameter list
+  params <- list(
+    eta = hyper_grid$eta[i],
+    max_depth = hyper_grid$max_depth[i],
+    min_child_weight = hyper_grid$min_child_weight[i],
+    subsample = hyper_grid$subsample[i],
+    colsample_bytree = hyper_grid$colsample_bytree[i]
+  )
+  set.seed(123)
+  
+  # train model
+  xgb.tune <- xgb.cv(
+    params = params,
+    data = features_train,
+    label = response_train,
+    nrounds = 300,
+    nfold = 5,
+    objective = "reg:linear",  # for regression models
+    verbose = 0,               # silent,
+    early_stopping_rounds = 10 # stop if no improvement for 10 consecutive trees
+  )
+  
+  # add min training error and trees to grid
+  hyper_grid$optimal_trees[i] <- which.min(xgb.tune$evaluation_log$test_rmse_mean)
+  hyper_grid$min_RMSE[i] <- min(xgb.tune$evaluation_log$test_rmse_mean)
+}
+hyper_grid %>%
+  dplyr::arrange(min_RMSE) %>%
+  head(10)
+```
+
+
+612----0.3180418
+```{r}
+# parameter list
+params <- list(
+  eta = .1,
+    max_depth = 5,
+    min_child_weight = 2,
+    subsample = .8,
+    colsample_bytree = .9
+)
+set.seed(16)
+# train final model
+xgb.fit.final <- xgboost(
+  params = params,
+  data = features_train,
+  label = response_train,
+  nrounds = 227,
+  objective = "reg:linear",
+  verbose = 0
+)
+```
+
+```{r}
+gbpre <- predict(xgb.fit.final,features_test)
+ gbpre <- ifelse(gbpre>0.5,1,0)
+table(gbpre)
+ggerror <- mean(gbpre!=response_test)
+1-ggerror
+
+
+# RMSE(gbpre,response_test)
+# gbpre
+#     0     1 
+# 12972  3794 
+# [1] 0.8689013
+```
+```{r}
+# 195
+
+# parameter list
+params <- list(
+  eta = .1,
+    max_depth = 5,
+    min_child_weight = 7,
+    subsample = .8,
+    colsample_bytree = .9
+)
+
+
+set.seed(16)
+# train final model
+xgb.fit.final2 <- xgboost(
+  params = params,
+  data = features_train,
+  label = response_train,
+  nrounds = 410,
+  objective = "reg:linear",
+  verbose = 0
+)
+```
+```{r}
+
+gbpre <- predict(xgb.fit.final2,features_test)
+ gbpre <- ifelse(gbpre>0.5,1,0)
+table(gbpre)
+ggerror <- mean(gbpre!=response_test)
+1-ggerror
+
+# gbpre
+#     0     1 
+# 12945  3821 
+# [1] 0.8691996
+
+# 1] 0.8706907
+```
+```{r}
+params <- list(
+  eta = .1,
+    max_depth = 5,
+    min_child_weight = 7,
+    subsample = .8,
+    colsample_bytree = 0.9
+)
+set.seed(16)
+# train final model
+xgb.fit.final2 <- xgboost(
+  params = params,
+  data = features_train,
+  label = response_train,
+  nrounds = 410,
+  objective = "reg:linear",
+  verbose = 0
+)
+set.seed(16)
+gbpre <- predict(xgb.fit.final2,features_test)
+ gbpre <- ifelse(gbpre>0.5,1,0)
+table(gbpre)
+ggerror <- mean(gbpre!=response_test)
+1-ggerror
+
+
+
+
+
+
+```
+
+
+
+```{r}
+
+  strong_combine1 <-  0.5*(prestrong.rf) + 0.5*gbpre
+  strong_combine1 <- ifelse(strong_combine1>0.5,1,0)
+  table(strong_combine1)
+  comerror <- mean(strong_combine1!=new_test$target)
+
+```
+
+```{r}
+# new_train
+# new_t
+
+
+
+
+set.seed(71)
+   
+train.indexkk <- createDataPartition(new$target, p = .75, list = FALSE)
+new_train <- new[train.indexkk, ]
+new_test <- new[-train.indexkk, ]
+set.seed(16)
+strong.rf <- randomForest(target~.,data=new_train[,c(3,4,5,6,9)],importance=T,ntree=500)
+
+
+
+
+```
+```{r}
+
+prestrong.rf <- predict(strong.rf,new_test[,c(3,4,5,6,9)],type = "response")
+prestrong.rf <- ifelse(prestrong.rf>0.5,1,0)
+
+prestrong.rf %>% table()
+
+strongrferror <- mean(prestrong.rf!=new_test$target)
+1-strongrferror
+```
+
+```{r}
+
+
+prestrong.rf
+gbpre
+
+
+
+
+
+
+
+combined <- cbind(new_test[,c(3,4,5,6,9)],gbpre) 
+combined <- as.data.frame(combined)
+gb <- read.csv("sub_sub.csv")
+rf <- read.csv("substrongrandom.csv")
+combinesub <- cbind(rf,gb)
+
+combinesub <- combinesub[,c(3,6)]
+# combinesub <- as.data.frame(combinesub)
+ names(combinesub) <- c("rf","gb")
+previousrf <- read.csv("sub_3.csv")
+
+
+new_combine <- cbind(combinesub,previousrf)
+
+new_combine <- new_combine[,c(1,2,4,5)]
+names(new_combine)=c("rf","gb","id","oldrf")
+new_combine %>% glimpse()
+check <- new_combine[new_combine$rf!=new_combine$target | new_combine$rf!=new_combine$gb,c(1,2,4)]
+checknew <- new_combine[new_combine$rf!=new_combine$target & new_combine$rf!=new_combine$gb ,c(1,2,4)]
+checknew
+ft <- read.csv("finaltest.csv")
+
+combinedfull <- cbind(new_combine,ft)
+
+new_combine2 <- combinedfull
+
+checknew2 <- new_combine2[new_combine2$rf!=new_combine2$oldrf & new_combine2$rf!=new_combine2$gb ,-c(3,5,6)]
+checknew3 <- new_combine2[new_combine2$rf!=new_combine2$oldrf | new_combine2$rf!=new_combine2$gb ,-c(3,5,6)]
+```
+
+```{r}
+new_combine
+
+
+```
+
+
+
+```{r}
+subrf <- ft
+
+strongpre <- predict(strong.rf,subrf[,c(3,4,5,6,9)],type = "response")
+strongpre <- ifelse(strongpre>0.5,1,0)
+
+table(strongpre)
+subrf$result <- strongpre
+
+subrf <- subrf[,c(2,9,10)]
+for (i in 1:nrow(subrf) )
+   {
+   
+subrf$target[i] <- replace(subrf$target[i],subrf$result[i]) 
+ subrf$target[i]
+   
+   
+   
+}
+
+table(subrfsub$target)
+subrfsub <- subrf[,1:2]
+names(subrfsub) <- c("id","target")
+
+subrfsub %>% write.csv(.,file = "substrongrandom3.csv")
+```
+```{r}
+subrfsub$target %>% table()
+sub_sub <- read.csv("sub_sub.csv")
+sub_sub$target %>% table()
+tt12 <- read.csv("test12.csv")
+tt12$target %>% table()
+sub2$target %>% table()
+s$target %>% table()
+ss$target %>% table()
+sss$target %>% table()
+
+
+
+cbind(s$target,subrfsub$target,sub2$target,ss$target)
+
+which(sub2$target-subrfsub$target!=0)
+```
+
+```{r}
+srf1$target %>% table
+
+srf1 <- read.csv("substrongrandom.csv")
+srf2 <- read.csv("substrongrandom2.csv")
+srf3 <- read.csv("substrongrandom3.csv")
+sgb1 <- read.csv("sub_sub.csv")
+sgb2 <- read.csv("sub_sub2.csv")
+big$sr12ok <- sr12ok$target
+big$sr12soso <- sr11soso$target
+big$srbad<- srbad$target
+big <- cbind(srf1[3],srf2[3],srf3[3],sgb1[3],sgb2[3])
+ft$target
+# badest <- read.csv("test5.csv")
+badest$target %>% table()
+big$ok=badest$target
+
+
+
+```
+```{r}
+sr11soso <- read.csv("test11.csv")$target %>% table # 0.86983
+srread.csv("test10.csv")$target %>% table #0.87285
+read.csv("test3.csv")$target %>% table # 0.87395
+sr12ok <- read.csv("test12.csv")$target %>% table #0.87422
+read.csv("sub_sub.csv")$target %>% table() 
+read.csv("sub_sub2.csv")$target %>% table()  #higher 
+srbad <- read.csv("sub_1.csv")
+table(big$srf1)
+attach(big)
+  # names(big)=c("srf1","srf2","srf3","sgb1","sgb2","badest","ok","bad","sum")
+# big$sum <- big[,1]+big[,2]+ big[,3]+big[,4]+big[,5]
+table(big$srf1)
+# big$reference <- ft$target
+
+```
+
+```{r}
+
+write.csv(big,file = "bigg.csv")
+big$srf1[c(26875)]=1
+big$srf1[c(23489,24372)]=0
+```
+```{r}
+big[ 3,]
+
+
+
+rea
+```
+
+```{r}
+biggg <- read.csv("bigg.csv")
+
+manual <- cbind(ft[3],biggg[2])
+names(manual) <- c("id","target")
+
+
+
+write.csv(manual,"manual1.csv")
+```
+
+
+
+
+
+
+
+
+```{r}
+xgb.fit.final2$evaluation_log %>%
+  dplyr::summarise(
+    ntrees.train = which(train_rmse_mean == min(train_rmse_mean))[1],
+    rmse.train   = min(train_rmse_mean),
+    ntrees.test  = which(test_rmse_mean == min(test_rmse_mean))[1],
+    rmse.test   = min(test_rmse_mean)
+  )
+```
+
+
+
+
+
+```{r}
+set.seed(16)
+gbpre <- predict(xgb.fit.final2,features_test)
+ gbpre <- ifelse(gbpre>0.5,1,0)
+table(gbpre)
+ggerror <- mean(gbpre!=response_test)
+1-ggerror
+```
+
+
+```{r}
+
+# # 75 ratio
+# params <- list(
+#   eta = .1,
+#     max_depth = 5,
+#     min_child_weight = 7,
+#     subsample = .8,
+#     colsample_bytree = 0.9
+# )
+# set.seed(16)
+# # train final model
+# xgb.fit.final3 <- xgboost(
+#   params = params,
+#   data = features_train,
+#   label = response_train,
+#   nrounds = 410,
+#   objective = "reg:linear",
+#   verbose = 0
+# )
+# 
+# ```
+# ```{r}
+# set.seed(16)
+# gbpre <- predict(xgb.fit.final3,features_test)
+#  gbpre <- ifelse(gbpre>0.5,1,0)
+# table(gbpre)
+# ggerror <- mean(gbpre!=response_test)
+# 1-ggerror
+
+fix <- xgb.fit.final3
+```
+```{r}
+# saveRDS(strong.rf,"strongstrong.rds")
+```
+
+```{r}
+
+feat_t2 <- as.matrix(ft[,c(3,4,5,6,22:33)])
+
+sb3 <- predict(xgb.fit.final2,feat_t2)
+sb3 <- ifelse(sb2>0.5,1,0)
+sb3 %>% table()
+sb2 %>% table()
+sub2 <- ft[,c(2,9)]
+sub2$result <- sb2
+
+
+for (i in 1:nrow(sub2) )
+   {
+   
+   sub2$target[i] <- replace(sub2$target[i],sub2$result[i]) 
+  sub2$target[i]
+   
+   
+   
+}
+
+sub_sub2 <- sub2[,1:2]
+
+names(sub_sub2) <- c("id","target")
+write.csv(sub_sub2,file = "sub_sub2.csv")
+
+write.csv(sub_sub,file = "sub_sub.csv")
+
+```
+```{r}
+dat <- as.data.frame(x=c(years_of_exp,number_of_units_daily)),list(c(110,105,115,127,98,103,87,108,112),c(15.1,7,18.6,23.7,11.5,16.4,6.3,15.4,19,9))
+```
+
+
+
+
+

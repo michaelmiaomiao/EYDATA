@@ -1,0 +1,219 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+# for (i in 100:500){
+# set.seed(i)
+#  new=use[sample(1:nrow(use),1000,replace = F),]
+# 
+# 
+#  train.index <- createDataPartition(new$target,p = .75, list = FALSE)
+#  new_train <- new[train.index,]
+#  new_test <- new[-train.index,]
+# 
+# set.seed(16)
+# ranger3 <- ranger(
+#     formula   = target ~ .,
+#     data      = new_train[,c(2,3,4,5,6,7,8,9,11,12,13,14,15)],
+#     num.trees = 500,
+#     mtry      = 8,
+#     sample.fraction = .55,
+#     min.node.size=5,
+#     importance = "impurity"
+#   )
+# 
+# rangepre3 <- predict(ranger3,new_test[,c(2,3,4,5,6,7,8,9,11,12,13,14,15)],type = "response")
+# 
+# pre3 <- ifelse(rangepre3$predictions>0.5,1,0)
+# errorrange3[i] <- mean(pre3!=new_test$target)
+# cat(1-errorrange3[i]," ", i, "\n")
+# 
+# }
+#1 7zuihao 14, 16, 
+
+
+```
+
+```{r}
+errorrange3[order(errorrange3)]
+which(errorrange3==0.036)
+
+```
+
+```{r}
+
+set.seed(16)
+# n=use
+new=n[sample(1:nrow(n),104268,replace = F),]
+
+ # new=use
+ train.index <- createDataPartition(new$target,p = .75, list = FALSE)
+ new_train <- new[train.index,]
+ new_test <- new[-train.index,]
+
+set.seed(16)
+ranger3 <- ranger(
+    formula   = target ~ ., 
+    data      = new_train[,c(4,5,8,9,11,12,13,14,15,16,17)], 
+    num.trees = 500,
+    mtry      = 8,
+    sample.fraction = .55,
+    min.node.size=5,
+    importance = "impurity"
+  )
+
+rangepre3 <- predict(ranger3,new_test[,c(4,5,8,9,11,12,13,14,15,16,17)],type = "response")
+
+pre3 <- ifelse(rangepre3$predictions>0.5,1,0)
+errorrange3 <- mean(pre3!=new_test$target)
+cat(1-errorrange3,"\n")
+
+```
+```{r}
+last <- read.csv("reallyuseuse.csv")
+n=NULL
+n=last
+
+
+```
+
+
+
+
+```{r}
+which.min()
+```
+
+```{r}
+pre3 %>% glimpse()
+pre2 %>% glimpse()
+pre %>% glimpse()
+s %>% glimpse()
+sum <- ifelse(s>1.5,1,0)
+pre22 %>% glimpse()
+1-mean(pre2!=new_test$target)
+
+s <- (rangerpre2$predictions+rangerpre$predictions)/2
+s <- ifelse(s>0.5,1,0)
+1-mean(s!=new_test$target)
+```
+
+
+
+
+
+
+```{r}
+# new=use
+   # n=new
+n$y_entry_plus1 <- n$y_entry2+1000000
+n$y_entry_plus2 <- n$y_entry2+2000000
+  n$y_entry_plus3 <- n$y_entry2+3000000
+ 
+n$y_entry_min1 <- n$y_entry2-1000000
+n$y_entry_min2 <- n$y_entry2-2000000
+   n$y_entry_min3 <- n$y_entry2-3000000
+       # new=n
+
+```
+```{r}
+n$x_entry_plus1 <- n$x_entry2+1000000
+n$x_entry_plus2 <- n$x_entry2+2000000
+  n$x_entry_plus3 <- n$x_entry2+3000000
+ 
+n$x_entry_min1 <- n$x_entry2-1000000
+n$x_entry_min2 <- n$x_entry2-2000000
+   n$x_entry_min3 <- n$x_entry2-3000000
+```
+
+
+```{r}
+# n=new
+n$y_entry_plus1 <- n$y_entry2+800000
+n$y_entry_plus2 <- n$y_entry2+1600000
+# #  n$y_entry_plus3 <- n$y_entry2+3000000
+# # 
+n$y_entry_min1 <- n$y_entry2-800000
+n$y_entry_min2 <- n$y_entry2-1600000
+# #  n$y_entry_min3 <- n$y_entry2-3000000
+     # new=n
+```
+
+
+```{r}
+subgb <- read.csv("reallyuseuse.csv")
+subgb=subgb[,-1]
+ #  n=subgb
+ # subgb=n
+# new_train %>% glimpse()
+# [,c(2,3,4,5,6,7,8,9,11,12,13,14,16,17,18,19)]
+set.seed(16)
+pregb <- predict(xgb.fit.final2,as.matrix(subgb[,c(2,3,4,5,6,7,8,9,11,12,13,14,16,17,18,19)]),type = "response")
+pregb <- ifelse(pregb>0.5,1,0)
+table(pregb)
+subgb <- subgb[,c(10,15)]
+subgb$result <- pregb
+subgb
+
+for (i in 1:nrow(subgb) )
+   {
+   
+   subgb$target[i] <- replace(subgb$target[i],subgb$result[i]) 
+  subgb$target[i]
+   
+   
+
+}
+names(subgb)=c("id","target")
+subgb <- subgb[,1:2]
+head(subgb)
+table(subgb$target)
+write.csv(subgb,file = "dagb.csv")
+```
+
+
+```{r}
+
+set.seed(16)
+ # new=use
+   # new=n[sample(1:nrow(n),1000,replace = F),]
+
+ # new=use
+ train.index <- createDataPartition(new$target,p = .75, list = FALSE)
+ new_train <- new[train.index,]
+ new_test <- new[-train.index,]
+
+set.seed(16)
+ranger3 <- ranger(
+    formula   = target ~ ., 
+    data      = new_train[,c(4,5,6,7,8,9,11,12,13,14,15,16,17,18,19,19,18)], 
+    num.trees = 500,
+    mtry      = 8,
+    sample.fraction = .55,
+    min.node.size=5,
+    importance = "impurity"
+  )
+
+rangepre3 <- predict(ranger3,new_test[,c(4,5,6,7,8,9,11,12,13,14,15,16,17,18,19,19,18)],type = "response")
+
+pre3 <- ifelse(rangepre3$predictions>0.5,1,0)
+errorrange3 <- mean(pre3!=new_test$target)
+cat(1-errorrange3,\n")
+
+
+```
+
+

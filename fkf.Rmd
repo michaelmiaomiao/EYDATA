@@ -1,0 +1,60 @@
+
+
+
+
+
+```{r}
+#model 2
+
+set.seed(16)
+ # new=use
+ # n=new
+# new=use[sample(1:nrow(use),67500,replace = F),]
+
+set.seed(16)
+train.index <- createDataPartition(new$target,p = .75, list = FALSE)
+new_train <- new[train.index,]
+new_test <- new[-train.index,]
+set.seed(16)
+ranger2 <- ranger(
+    formula   = target ~ ., 
+    data      = new_train[,c(4,5,6,7,8,9,11,12,13,14,15,16,17)], 
+    num.trees = 500,
+    mtry      = 8,
+    sample.fraction = .55,
+    min.node.size=5,
+    importance = "impurity"
+  )
+
+rangerpre2 <- predict(ranger2,new_test[,c(4,5,6,7,8,9,11,12,13,14,15,16,17)],type = "response")
+pre2 <- ifelse(rangerpre2$predictions>0.5,1,0)
+errorrange2 <- mean(pre2!=new_test$target)
+1-errorrange2
+```
+```{r}
+sub3a <- read.csv("reallyuseuse.csv")
+sub3a=sub3a[,-1]
+# n=sub3a
+# sub3a=n
+set.seed(16)
+# model1=ranger2
+modelpresub3a <- predict(model1,sub3a[,c(4,5,6,7,8,9,11,12,13,14,15,16,17)],type = "response")
+modelpre3 <- ifelse(modelpresub3a$predictions>0.5,1,0)
+table(modelpre3)
+sub33a=sub3a[,c(10,15)]
+sub33a$result <- modelpre3
+for (i in 1:nrow(sub33a) )
+   {
+   
+   sub33a$target[i] <- replace(sub33a$target[i],sub33a$result[i]) 
+  sub33a$target[i]
+   
+   
+
+}
+# sub33a=sub33a[,1:2]
+names(sub33a)=c("id","target")
+head(sub33a)
+write.csv(sub33a,file = "suiyuanmorning.csv")
+```
+

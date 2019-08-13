@@ -1,0 +1,164 @@
+
+
+<!-- replace <- function(x,y) { -->
+<!-- if (is.na(x)) -->
+<!-- { -->
+<!--    x=y -->
+<!-- }else -->
+<!--  {x=x} -->
+<!--    return(x) -->
+<!-- } -->
+
+```{r}
+
+
+set.seed(16)
+train.indexkk <- createDataPartition(new$target, p = .75, list = FALSE)
+new_train <- new[train.indexkk, ]
+new_test <- new[-train.indexkk, ]
+features_train <- as.matrix(new_train[,c(3,4,5,6,22:33)])
+response_train <- as.matrix(new_train[,9])
+# names(new)
+
+features_test <- as.matrix(new_test[,c(3,4,5,6,22:33)])
+response_test <- as.matrix(new_test[,9]) 
+params <- list(
+  eta = .1,
+    max_depth = 5,
+    min_child_weight = 2,
+    subsample = .8,
+    colsample_bytree = .9
+)
+ set.seed(16)
+# train final model
+xgb.fit.final2 <- xgboost(
+  params = params,
+  data = features_train,
+  label = response_train,
+  nrounds = 410,
+  objective = "reg:linear",
+  verbose = 0
+)
+
+ set.seed(16)
+gbpre <- predict(xgb.fit.final2,features_test)
+ gbpre <- ifelse(gbpre>0.5,1,0)
+table(gbpre)
+ggerror <- mean(gbpre!=response_test)
+1-ggerror
+```
+
+
+
+sample(1:nrow(new_train),size =1000,replace = F )
+```{r}
+set.seed(123)
+
+new2 <- new[sample(1:nrow(new),size =5000,replace = F ),]
+```
+
+
+```{r}
+
+for (i in 67:100) {
+set.seed(71)
+   
+train.indexkk <- createDataPartition(new$target, p = .75, list = FALSE)
+new_train <- new[train.indexkk, ]
+new_test <- new[-train.indexkk, ]
+
+features_train <- as.matrix(new_train[,c(3,4,5,6,22:33)])
+response_train <- as.matrix(new_train[,9])
+# names(new)
+
+features_test <- as.matrix(new_test[,c(3,4,5,6,22:33)])
+response_test <- as.matrix(new_test[,9]) 
+# parameter list
+params <- list(
+  eta = .1,
+    max_depth = 5,
+    min_child_weight = 2,
+    subsample = .8,
+    colsample_bytree = .9
+)
+ set.seed(i)
+# train final model
+xgb.fit.final2 <- xgboost(
+  params = params,
+  data = features_train,
+  label = response_train,
+  nrounds = 410,
+  objective = "reg:linear",
+  verbose = 0
+)
+
+
+gbpre <- predict(xgb.fit.final2,features_test)
+ gbpre <- ifelse(gbpre>0.5,1,0)
+table(gbpre)
+ggerror[i] <- mean(gbpre!=response_test)
+cat(1-ggerror[i],i,"\n")
+
+}
+
+
+```
+```{r}
+
+
+
+set.seed(71)
+   
+train.indexkk <- createDataPartition(new$target, p = .75, list = FALSE)
+new_train <- new[train.indexkk, ]
+new_test <- new[-train.indexkk, ]
+
+features_train <- as.matrix(new_train[,c(3,4,5,6,22:33)])
+response_train <- as.matrix(new_train[,9])
+# names(new)
+
+features_test <- as.matrix(new_test[,c(3,4,5,6,22:33)])
+response_test <- as.matrix(new_test[,9]) 
+# parameter list
+params <- list(
+  eta = .1,
+    max_depth = 5,
+    min_child_weight = 2,
+    subsample = .8,
+    colsample_bytree = .9
+)
+ set.seed(31)
+# train final model
+xgb.fit.final2 <- xgboost(
+  params = params,
+  data = features_train,
+  label = response_train,
+  nrounds = 410,
+  objective = "reg:linear",
+  verbose = 0
+)
+
+
+gbpre <- predict(xgb.fit.final2,features_test)
+ gbpre <- ifelse(gbpre>0.5,1,0)
+table(gbpre)
+ggerror <- mean(gbpre!=response_test)
+cat(1-ggerror)
+
+
+
+```
+
+
+```{r}
+
+
+
+stronggb <- xgb.fit.final2
+```
+
+```{r}
+
+```
+
+

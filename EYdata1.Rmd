@@ -1,0 +1,807 @@
+---
+title: "EYDATA"
+author: "JIASHU MIAO"
+date: "4/13/2019"
+output: html_document
+---
+
+```{r}
+pkg <- c("readr","readxl","dplyr","stringr","ggplot2","tidyr","car","caret"
+
+,"ranger"
+,"rsample"
+,"randomForest")
+pkgload <- lapply(pkg, require, character.only = TRUE)
+
+```
+
+```{r,warning=FALSE}
+# data load and inspection 
+sample <- read.csv("sample.csv")
+ sample 
+data_test <- read.csv("data_test.csv")
+data_train <- read.csv("data_train.csv")
+
+tr <- data_train
+ts <- data_test
+```
+
+```{r}
+
+# glimpse(tr)
+# head(tr, 10)
+# typeof(ts$x_entry)
+# sum()
+# colSums(is.na(tr))
+# attach(tr,warn.conflicts = F)
+# SM_inf=0
+# for (i in 1:23)
+# { SM_inf <- sum(is.infinite(dataz2[,i]))
+#     if (!SM_inf==0)
+#        print(SM_inf)
+# }
+
+
+
+# # range(tr$vmax,na.rm = T)
+# range(tr$vmin,na.rm = T)
+# range(tr$vmean,na.rm = T)
+# colSums(is.na(tr))
+# colSums(is.na(ts))
+
+#  remove the 3 variables
+
+# impuate 
+
+# dim(tr)
+# SM_inf=0
+
+
+# for (i in 1:12)
+# { SM_inf <- sum(is.infinite(tr[,i]))
+#     if (!SM_inf==0)
+#        print(SM_inf)
+# }
+```
+```{r}
+# trminus1 <- tr %>% filter(., vmean < 0 | vmin < 0 | vmax < 0)
+# trminus2 <- tr %>% filter(., vmean < 0 | vmin < 0)
+# trminus3 <- tr %>% filter(., vmean < 0)
+# trminus4 <- tr %>% filter(., vmean < 0 & vmin < 0& vmax < 0)
+# dim(trminus1)
+# dim(trminus2)
+# dim(trminus3)
+# dim(trminus4)
+
+```
+
+
+```{r}
+# colSums(is.na(tr))[!colSums(is.na(tr))==0] %>% cat("for NAs \n")
+# dim(tr)
+# tr_NA <- 0
+# for ( i in 1:12 ) {
+#    tr_NA = sum(is.na(tr[,i]))
+#    if (!tr_NA==0)
+#    cat(tr_NA,"missing values (NAs) for",names(tr[i]),"\n")
+# }
+# tr_inf <- 0
+# for ( i in 1:12 ) {
+#    tr_inf = sum(is.infinite(tr[,i]))
+#    if (!tr_inf==0)
+#    cat(tr_inf,"infinite values (INF) for",names(tr[i]),"\n")
+# }
+# tr_NaN <- 0
+# for (i in 1:12) { 
+#    tr_NaN= sum(is.nan(tr[,i]))
+#    if (!tr_NaN==0)
+#       cat(tr_NaN,"not a number (NaN) for",names(tr[i]),"\n")
+# }
+# 
+# tr_NULL <- 0
+# for (i in 1:12) { 
+#    tr_NULL= sum(is.null(tr[,i]))
+#    if (!tr_NULL==0)
+#       cat(tr_NULL,"Null values (NULL)for",names(tr[i]),"\n")
+# }
+# 
+# tr_miINF <- 0
+# for (i in 1:12) { 
+#    tr_NULL= sum(is.null(tr[,i]))
+#    if (!tr_NULL==0)
+#       cat(tr_NULL,"Null values (NULL)for",names(tr[i]),"\n")
+# }
+
+```
+```{r}
+# the current dataset would be ； 
+# glimpse(tr)
+# glimpse(ts)
+# 
+
+
+```
+
+```{r}
+# colSums(is.na(ts))[!colSums(is.na(ts))==0] %>% cat("for NAs \n")
+colSums(is.na(data_test))
+colSums(is.na(data_train))
+dat_tot <- rbind(data_test,data_train)
+head(dat_tot,10)
+colSums(is.na(dat_tot))
+
+# I also chekck that the y_exist and x _exist are missing from the same element.
+
+
+ # rename the current use data as use and save the orginal data set
+```
+
+
+```{r}
+treat_NA <- 0
+for ( i in 1:12 ) {
+   treat_NA = sum(is.na(dat_tot[,i]))
+   if (!treat_NA==0)
+   cat(treat_NA,"missing values (NAs) for",names(dat_tot[i]),"\n")
+}
+treat_inf <- 0
+for ( i in 1:12 ) {
+   treat_inf = sum(is.infinite(dat_tot[,i]))
+   if (!treat_inf==0)
+   cat(treat_inf,"infinite values (INF) for",names(dat_tot[i]),"\n")
+}
+treat_NaN <- 0
+for (i in 1:12) { 
+   treat_NaN= sum(is.nan(dat_tot[,i]))
+   if (!treat_NaN==0)
+      cat(treat_NaN,"not a number (NaN) for",names(dat_tot[i]),"\n")
+}
+
+treat_NULL <- 0
+for (i in 1:12) { 
+   treat_NULL= sum(is.null(dat_tot[,i]))
+   if (!treat_NULL==0)
+      cat(treat_NULL,"Null values (NULL)for",names(dat_tot[i]),"\n")
+}
+
+# tr_miINF <- 0
+# for (i in 1:12) { 
+#    tr_NULL= sum(is.null(tr[,i]))
+#    if (!tr_NULL==0)
+#       cat(tr_NULL,"Null values (NULL)for",names(tr[i]),"\n")
+# }
+ 
+
+# use <- dat_tot[-is.na(dat_tot$x_exit),] # 
+# unkonw <- dat_tot[is.na(dat_tot$x_exit),]
+# xe <- which(is.na(dat_tot$x_exit));ye <- which(is.na(dat_tot$y_exit))
+# identical(xe,ye) Here I verify that the missing values from X_exist and Y_exist come from the same element in our data set. 
+
+# the use is now clear to use but should I go further analysis with data clean part 
+```
+
+
+```{r}
+total_know <- dat_tot[-which(is.na(dat_tot$x_exit)),]
+nrow(total_know)-nrow(dat_tot)
+full_clean_total_data <- dat_tot
+know <- total_know
+total_unknow <- dat_tot[which(is.na(dat_tot$x_exit)),]
+((nrow(total_unknow)+nrow(total_know))==nrow(dat_tot))
+glimpse(c(total_know,total_unknow))
+
+know <- total_know[,c(3,4,5,9,10,11,12)] %>% glimpse()
+unknow <- total_unknow[,c(3,4,5,9,10,11,12)] %>% glimpse()
+all(is.na(unknow$x_exit))
+all(is.na(unknow$y_exit))
+identical(which(is.na(unknow$x_exit)),which(is.na(unknow$y_exit)))
+```
+```{r}
+know %>% class()
+use <- know %>% as.data.frame()
+# transfer date time to seconds 
+# before splitting the date
+# write.csv(know,file = "know.csv")
+# write.csv(unknow,file = "unknow.csv")
+```
+
+```{r}
+# install.packages("lubridate")
+library("lubridate")
+know_read <- read.csv("know.csv")
+know <- know_read[,-1]
+typeof(know$time_entry)
+typeof(know$time_exit)
+class(know$time_exit)
+class(know$time_entry)
+know_test <- know
+# know$time_entry
+know_test$time_entry <- as.numeric(seconds(hms(know_test$time_entry)))
+know_test$time_exit <- as.numeric(seconds(hms(know_test$time_exit)))
+know_test <- as.data.frame(know_test)
+dim(unknow)
+unknow$time_entry <- as.numeric(seconds(hms(unknow$time_entry)))
+unknow$time_exit <- as.numeric(seconds(hms(unknow$time_exit)))
+glimpse(unknow)
+range(unknow$time_entry)
+range(unknow$time_exit)
+
+```
+
+```{r}
+glimpse(know_test) 
+summary(know_test$time_entry)
+# plot(know_test$time_entry)
+```
+
+```{r}
+15*60*60
+range(know_test$time_entry)
+range(know_test$time_exit)
+
+# know_test 
+# use <- know_test %>% filter(., time_entry>= 54000 &time_entry<= 57600 )
+use2 <- know_test %>% filter(., time_exit>=54000)
+# C
+dim(use2)
+use <- use2 
+range(use$time_exit)
+range(use$time_entry)
+use %>% filter(.,time_entry<54000) %>% print()
+all((use$time_exit-use$time_entry)>=0)
+which(use$time_exit-use$time_entry<=0)
+# checked if there is conflict for each element has exit time smaller than exist time and is valid
+
+```
+
+```{r}
+# next step would be remove the rows that time exit entry same 
+use_equa <- use %>% filter(., use$time_exit==use$time_entry)
+use2 <- use %>% filter(.,use$time_exit>use$time_entry)
+
+final <- use2 %>% as.data.frame()
+# identical(which(!use_contains_equaltime$time_entry==use_contains_equaltime$time_exit),which((use_contains_equaltime$time_exit - use_contains_equaltime$time_entry)<=0))
+```
+
+```{r}
+glimpse(final)
+length(levels(final$trajectory_id))
+#why there is more levels as the nrow . it means there are no duplicate ids 
+# now i gonna drop the id levels not used in are final data set
+final$trajectory_id <- factor(final$trajectory_id)
+length(levels(final$trajectory_id)) # no duplicate ids now in final 
+```
+
+```{r}
+# how to train the model for testing 
+# split the data now 
+
+library("MASS")
+set.seed(123)
+# splitting the data into training and testing 
+sample2 <- sample(c(TRUE,FALSE),nrow(final),replace = T, prob = c(0.7,0.3))
+EYtrain <- final[sample2,]
+EYtest<- final[!sample2,]
+ratio <- nrow(EYtest)/nrow(EYtrain) 
+ratio %>% round(.,3)
+
+```
+
+```{r}
+par(mfrow=c(2,2))
+densityPlot(EYtest$x_entry,col = "red")
+densityPlot(EYtrain$x_entry,col = "blue")
+densityPlot(EYtest$y_entry)
+densityPlot(EYtrain$y_entry)
+densityPlot(EYtest$time_entry,col = "red")
+densityPlot(EYtrain$time_entry,col = "blue")
+# densityPlot(c(EYtest$x_exit,EYtrain$x_exit),col = c("blue","red"))
+# how to drow on same fram
+
+
+```
+
+
+```{r}
+library(klaR)
+final2 <- final
+final2$target <- rep(0,nrow(final2))
+glimpse(final2)
+x=NULL;y=NULL;z=NULL
+
+
+```
+```{r}
+
+range(final2$time_exit) # legit
+
+check_bound <- function(x,y){
+   if (x<=3770901.5068 & x >=3750901.5068 & y<=-19208905.6133 & y>=-19268905.6133) 
+        z=TRUE
+   else
+      z=FALSE
+   
+ 
+} 
+
+
+check_bound(1,2)
+
+# x_entry       "3758345"                                  
+# y_entry       "-19269312"  
+```
+
+```{r}
+ce <- final2[1:30,]
+
+for (i in 1:nrow(ce)) {
+   ce$target[i] <- check_bound(ce$x_exit[i],ce$y_exit[i]) 
+   ce$target[i]
+}
+ce$target  
+# test successfully
+
+ce[11,]
+
+```
+
+```{r}
+for (i in 1:nrow(final2) )
+   {
+   
+   final2$target[i] <- check_bound(final2$x_exit[i],final2$y_exit[i]) 
+   final2$target[i]
+   
+   
+   
+}
+
+final2$target %>% table()
+
+
+# 
+# # for (i in 1:nrow(final2)){
+# #    final2$target[i] <- check_bound(final2$x_exit,final2)
+# #    final2$target
+# # }
+# 
+# # if_else(check_bound(final2$x_exit,final2$y_exit),1,0)
+# # if_else(check_bound(final2$x_exit,final2$y_exit),1,0)
+# #  check_bound(final2$x_exit,final2$y_exit)
+# # table(final2$target)
+```
+
+```{r}
+write.csv(final2,file = "final2.csv")
+
+```
+```{r}
+new <- read.csv("final2.csv")
+glimpse(new)
+table(new$target)
+```
+
+```{r}
+# install.packages("rsample")
+library(caret)
+set.seed(123)
+train.index <- createDataPartition(new$target,p = .7, list = FALSE)
+new_train <- new[train.index,]
+new_test <- new[-train.index,]
+
+table(new_train$target)
+table(new_test$target)
+nrow(new_test)
+nrow(new_train)
+
+```
+
+```{r}
+model1 <- glm(data = new_train,formula = target~time_entry+time_exit+x_entry+y_entry+x_exit+y_exit, family = "binomial")
+fm <- formula(new_train$target~new_train$time_entry+new_train$time_exit+new_train$x_entry+new_train$y_entry+new_train$x_exit+new_train$y_exit)
+# summary(model1_logis)
+
+
+model11 <- glm(formula = fm, data = new_train, family = "binomial")
+model11 %>% summary()
+# model111 <- NaiveBayes(new_train$target~new_train$time_entry+new_train$time_exit+new_train$x_entry+new_train$y_entry+new_train$x_exit+new_train$y_exit,data = new_train) 
+
+
+# predict_model1 <- predict(model1_logis, newdata=new_test,type = "response")
+# predict_model1 %>% table() %>% tail()
+# list(model1_logis= table(new_test$target,predict_model1>0.5) %>% prop.table() %>% round(3))
+model1
+prediction1 <- predict(model1,newdata = new_test[3:9])
+range(prediction1)
+# prediction1$class
+summary(model1)
+
+# model2 <- model111 grouping problem why factor variable is important here 
+
+
+```
+
+```{r}
+glimpse(new_train)
+model1 <- lm(target~.,data = new_train[3:9])
+# model1
+summary(model1)
+p1<- predict.lm(model1,new_test[3:9],type = "response")
+p1 <- ifelse(p1 > 0.5,1,0)
+misClasificError1 <- mean(p1 != new_test$target)
+print(paste('Accuracy',1-misClasificError1))
+
+
+```
+
+
+```{r}
+model2 <- glm(target~.,data = new_train[3:9],family=binomial(link='logit'))
+summary(model2)
+p2 <- predict.glm(model2,newdata = new_test[3:9],type = "response")
+p2 <- ifelse(p2 > 0.5,1,0)
+misClasificError2 <- mean(p2 != new_test$target)
+print(paste('Accuracy',1-misClasificError2))
+
+
+```
+
+```{r}
+# features <- setdiff(names(new_train),"target")
+# x <- new_train[,features]
+# y <- new_train$target
+# train_control3 <- trainControl(method = "cv",number = 10)
+# model3 <- train( x=x, y=y, method = "nb",trControl = train_control3)
+
+```
+
+```{r,warning=F}
+library("randomForest")
+set.seed(16)
+new_train %>% glimpse()
+model4 <- randomForest(target~., data = new_train[c(3,4,5,6,9)], ntree=500,importance=TRUE)
+set.seed(16)
+p4 <- predict(model4,new_test[c(3,4,5,6,9)],type = "response")
+p4 <- ifelse(p4 >= 0.5,1,0)
+table(p4)
+misClasificError4 <- mean(p4 != new_test$target)
+print(paste('Accuracy',1-misClasificError4))
+table(new_test$target)
+
+
+library("randomForest")
+set.seed(16)
+new_train %>% glimpse()
+model4.2 <- randomForest(target~., data = new_train[c(3,4,5,6,9)], ntree=500,importance=TRUE)
+set.seed(16)
+p4.2 <- predict(model4.2,new_test[c(3,4,5,6,9)],type = "response")
+p4.2 <- ifelse(p4.2 >= 0.5,1,0)
+table(p4.2)
+misClasificError4.2 <- mean(p4.2 != new_test$target)
+print(paste('Accuracy',1-misClasificError4.2))
+table(new_test$target)
+```
+```{r}
+index   <- sample(1:nrow(new), round(nrow(new) * 0.7))
+train_1 <- new[index, ]
+test2  <- new[-index, ]
+# test2$target
+# p5
+
+p5 <- predict(model4,train_1[c(3,4,5,6,9)],type = "response")
+p5 <- ifelse(p5 > 0.5,1,0)
+table(p5)
+misClasificError5 <- mean(p5 != train_1$target)
+print(paste('Accuracy',1-misClasificError5))
+table(test2$target)
+
+# imean我想
+```
+```{r}
+sametime <- read.csv("sametime.csv")
+glimpse(sametime)
+sametime$target <- sametime$result
+
+sametime <- sametime[,c(1,4,5,6,10,11,12,13,15)]
+glimpse(sametime)
+write.csv(sametime,file = "finaltest.csv")
+
+```
+
+```{r}
+unknow$target <- sametime$target
+unknow %>% dim()
+glimpse(unknow)
+colSums(is.na(unknow))
+
+ptest1 <- predict(model4,unknow[c(2,3,4,5,6)],type = "response")
+ptest1 <- ifelse(ptest1>=0.5,1,0)
+ptest1 %>% table()
+unknow$result <- ptest1
+dim(unknow)
+head(unknow,30)
+
+```
+```{r}
+replace <- function(x,y) {
+if (is.na(x))
+{
+   x=y
+}else
+ {x=x}
+   return(x)
+}
+x=1
+y=3
+replace(x,y)
+unknowt <- unknow
+unknowt$result
+which(!unknowt$target==unknowt$result)
+
+for (i in 1:nrow(unknowt) )
+   {
+   
+   unknowt$target[i] <- replace(unknowt$target[i],unknowt$result[i]) 
+  unknowt$target[i]
+   
+   
+   
+}
+sample
+unknowt$target
+dim(unknow)
+unknowt$id <- unknowt$trajectory_id
+unknowt %>% glimpse()
+test3 <- unknowt[,c(10,8)]
+test3
+```
+
+```{r}
+save(model4.2,file = "rffullbest.Rdata")
+write.csv(test3,file = "test3.csv")
+glimpse(ft)
+
+```
+```{r}
+set.seed(16)
+ft$result <- predict(model4.2,ft[c(3,4,5,6,9)],type = "response")
+ft$result <- ifelse(ft$result  >= 0.5,1,0)
+test12 <- ft[c(2,9,10)] %>% glimpse() 
+test12$result <- as.integer(test12$result)
+test12$target2 <- test12$target
+
+for (i in 1:nrow(test12) )
+   {
+   
+   test12$target[i] <- replace(test12$target[i],test12$result[i]) 
+  test12$target[i]
+   
+   
+
+}
+glimpse(test12)
+which(!test12$target==test12$result)
+test12$target[362]
+test12$target2[362]
+test12$result[362]
+
+test12$target[365]
+test12$target2[365]
+test12$result[365]
+
+
+test12$target[402]
+test12$target2[402]
+test12$result[402]
+which(!test12$target==test12$result)
+which(!test12$target2==test12$result)
+
+test12
+test12sub <- test12[1:2]
+names(test12sub)=c("id","target")
+
+write.csv(test12sub,file = "test12.csv")
+
+test12sub %>% glimpse()
+```
+
+
+```{r}
+set.seed(123)
+ft <- read.csv("finaltest.csv")
+ft <- ft[,-1] %>% glimpse()
+library(lubridate)
+ft[c(3,4,5,6,9)]
+new[,c(3,4,5,6,9)]
+ft$time_entry <- as.numeric(seconds(hms(ft$time_entry)))
+ft$time_exit <- as.numeric(seconds(hms(ft$time_exit)))
+ n=ft
+glimpse(ft)
+model5 <- randomForest(target~., data = new[c(3,4,5,6,9)], ntree=500,importance=TRUE)
+p5 <- predict(model5,ft[c(3,4,5,6,9)],type = "response")
+
+p5 <- ifelse(p5 >= 0.5,1,0)
+table(p5)
+ft$result <- p5
+for (i in 1:nrow(ft) )
+   {
+   
+   ft$target[i] <- replace(ft$target[i],ft$result[i]) 
+  ft$target[i]
+   
+   
+   
+}
+table(ft$target)
+ft$id <- ft$trajectory_id
+test4 <- ft[,c(11,9)]
+write.csv(test4,file = "test4.csv")
+dim(test4)
+
+
+ bestmtry <- tuneRF( new_train[c(3,4,5,6)], new_train$target, stepFactor=1.5, improve=1e-5, ntree=100)
+print(bestmtry)
+```
+
+```{r}
+model6 <- randomForest(target~., data = new_train[c(3,4,5,6,9)], ntree=500,importance=TRUE, mtry=6)
+
+
+
+
+```
+
+```{r}
+
+p6 <- predict(model6,new_test[c(3,4,5,6,9)],type = "response")
+p6 <- ifelse(p6 > 0.5,1,0)
+table(p6)
+misClasificError6 <- mean(p6 != new_test$target)
+print(paste('Accuracy',1-misClasificError6))
+
+
+model7 <- randomForest(target~., data = new_train[c(3,4,5,6,9)], ntree=100,importance=TRUE, mtry=6)
+p7 <- predict(model7,new_test[c(3,4,5,6,9)],type = "response")
+p7 <- ifelse(p7>0.5,1,0)
+table(p7)
+misClasificError7 <- mean(p7 != new_test$target)
+print(paste('Accuracy',1-misClasificError7))
+
+
+bestmtry <- tuneRF( new_train[c(3,4,5,6)], new_train$target, stepFactor=1.5, improve=1e-5, ntree=100)
+bestmtry
+```
+
+
+```{r}
+
+trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+set.seed(123)
+ 
+model8 <- train(target ~., data = new_train[c(3,4,5,6,9)], method = "svmLinear",
+                 trControl=trctrl,
+                 preProcess = c("center", "scale"),
+                 tuneLength = 10)
+```
+
+```{r}
+##testing
+set.seed(16)
+new_test_sample <- new_test[sample(1:nrow(new_test),0.02*nrow(new_test)),c(3,4,5,6,9)]
+
+new_test_sample %>% dim()
+set.seed(16)
+p4.3 <- predict(model4.2,new_test_sample,type = "response")
+p4.3 <- ifelse(p4.3>0.5,1,0)
+table(p4.3)
+set.seed(16)
+misClasificError4.3 <- mean(p4.3 != new_test_sample$target)
+print(paste('Accuracy',1-misClasificError4.3))
+
+
+```
+```{r}
+
+p4.5 <- predict(model4.2,new_test[c(3,4,5,6,9)],type = "response")
+p4.5 <- ifelse(p4.5>0.5,1,0)
+table(p4.5)
+misClasificError4.5 <- mean(p4.5 != new_test$target)
+print(paste('Accuracy',1-misClasificError4.5))
+
+
+# rf.all <- combine(model4.2,,model4.4)
+
+```
+
+```{r}
+set.seed(16)
+new_train %>% glimpse()
+model4.4 <- randomForest(target~., data = new[c(3,4,5,6,9)], ntree=500,importance=TRUE)
+model4.4 %>% save(.,file = "cool.Rdata")
+
+```
+
+```{r}
+set.seed(16)
+new_tr <- sample(1:nrow(new_train),1000)
+new_te <- sample(1:nrow(new_test),1000*3/7)
+new_tr <- new_train[new_tr,]
+new_te <- new_test[new_te,]
+set.seed(16)
+t1 <- randomForest(target~., data = new_tr[c(3,4,5,6,9)], ntree=500,importance=TRUE)
+set.seed(16)
+tp1 <- predict(t1,new_te[c(3,4,5,6,9)],type = "response")
+tp1 <- ifelse(tp1>0.5,1,0)
+misClasificError.tp1 <- mean(tp1 != new_te$target)
+print(paste('Accuracy',1-misClasificError.tp1))
+0.850467289719626
+```
+
+```{r}
+ # for (i in 18:28){
+set.seed(16)
+t2 <- randomForest(target~., data = new_tr[c(3,4,5,6,9)], ntree=1500,importance=TRUE,maxnodes=23)
+set.seed(16)
+tp2 <- predict(t2,new_te[c(3,4,5,6,9)],type = "response")
+tp2 <- ifelse(tp2>0.5,1,0)
+table(tp2)
+misClasificError.tp2 <- mean(tp2 != new_te$target)
+print(paste('Accuracy',1-misClasificError.tp2))
+ # }
+
+
+cat("fuck you")
+0.845794392523365
+0.852803738317757
+0.850467289719626
+0.855140186915888
+
+```
+
+```{r}
+set.seed(16)
+t2 <- randomForest(target~., data = new_train[c(3,4,5,6,9)], ntree=1500,importance=TRUE,maxnodes=23)
+
+set.seed(16)
+
+
+
+
+
+save(t2,file = "t2.Rdata")
+set.seed(16)
+pt2 <- predict(t2,new_test[c(3,4,5,6,9)],type = "response")
+pt2 <- ifelse(pt2>0.5,1,0)
+table(pt2)
+
+misClasificError.pt2<- mean(pt2 != new_te$target)
+print(paste('Accuracy',1-misClasificError.pt2))
+```
+
+```{r}
+t22<- load("cool.Rdata")
+
+set.seed(16)
+pt22 <- predict(t22,new_test[c(3,4,5,6,9)],type = "reponse")
+```
+
+
+```{r}
+set.seed(16)
+t1 <- randomForest(target~., data = new_tr[c(3,4,5,6,9)], ntree=300,importance=TRUE)
+set.seed(16)
+tp1 <- predict(t1,new_te[c(3,4,5,6,9)],type = "response")
+tp1 <- ifelse(tp1>0.5,1,0)
+misClasificError.tp1 <- mean(tp1 != new_te$target)
+print(paste('Accuracy',1-misClasificError.tp1))
+0.850467289719626
+```
+
+
+
+
+
+
+
+
+

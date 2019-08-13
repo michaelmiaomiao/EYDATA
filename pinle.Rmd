@@ -1,0 +1,737 @@
+
+as.numeric(seconds(hms(know_test$time_entry))
+```{r}
+#  train <- read.csv("data_train.csv")
+#  test <- read.csv("data_test.csv")
+#  clean <- rbind(train,test)
+# clean %>% dim()
+# 
+#  clean$time_entry <- as.numeric(seconds(hms(clean$time_entry)))
+#  clean$time_exit <- as.numeric(seconds(hms(clean$time_exit)))
+#                              
+#             
+```
+
+```{r}
+# glimpse(clean)
+ # clean2 <- clean[,-c(6,7,8)]
+ # 
+ #  train <- clean2[1:814262,]
+ # test <- clean2[-c(1:814262),]
+
+# train %>% dim()
+# test %>% dim()
+
+```
+
+```{r}
+large_time <- as.vector(tapply(train$time_exit,train$hash,max))
+
+train  %>%  group_by(hash)
+
+```
+```{r}
+
+```
+
+```{r}
+# train %>%
+#   group_by(hash) %>%
+#   arrange(time_exit) %>% 
+```
+
+```{r}
+# train %>% dim()
+# (tapply(train$time_exit,train$hash,max))
+# 
+
+
+
+
+
+```
+```{r}
+ # trainselect <- train[order(train$hash,train$time_exit,decreasing = T),]
+ # trainselect <- trainselect %>% group_by(hash) %>% top_n(3,wt = time_exit) %>% print()
+```
+```{r}
+trainselect %>% group_by(hash) %>% filter(max(time_exit)>=54000)
+```
+
+```{r}
+# testselect <- test[order(test$hash,test$time_exit,decreasing = T),]
+#  testselect <- testselect %>% group_by(hash) %>% top_n(3,wt = time_exit) %>% print()
+```
+```{r}
+testselect %>% group_by(hash) %>% filter(max(time_exit)>=54000)
+```
+```{r}
+layer1 <- trainselect %>% group_by(hash) %>%top_n(1,wt=time_exit) %>% print()
+```
+
+```{r}
+layer3 <- trainselect %>% group_by(hash) %>% top_n(-1,wt = time_exit)
+```
+```{r}
+together <- cbind(layer3,layer2,layer1)
+```
+```{r}
+together_fil <- together %>% filter(.,time_exit2>=54000)
+```
+
+```{r}
+# layer2 <- trainselect %>% group_by(hash) %>% top_n(-2,wt = time_exit)
+```
+
+```{r}
+# layer2 <- layer2 %>% group_by(hash) %>% top_n(1,wt = time_exit)
+```
+
+
+
+
+
+```{r}
+
+#  layer1_test <- testselect %>% group_by(hash) %>%top_n(1,wt=time_exit) %>% print()
+#  layer3_test <- testselect %>% group_by(hash) %>%top_n(-1,wt=time_exit) %>% print()
+# # layer2_test <- testselect %>% group_by(hash) %>%top_n(-2,wt=time_exit) %>% print()
+# # layer2_test <- layer2_test %>% group_by(hash) %>%top_n(1,wt=time_exit) %>% print()
+
+
+
+
+togethertest
+
+
+
+write.csv(togethertest,file="tog.csv")
+write.csv(together,file = "toggtrain.csv")
+```
+```{r}
+ train <- read.csv("toggtrain.csv")
+ train
+ x=z=y=0
+ check_bound2 <- function(x,y){
+   if (x<=3990901.5068 & x >=3750901.5068 & y<=-19208905.6133 & y>=-19268905.6133) 
+        z=TRUE
+   else
+      z=FALSE
+   return(z)
+    
+ } 
+# 
+ # for (i in 1:nrow(train)){
+ #    train$target[i] <- check_bound2(train$x_exit2[i],train$y_exit2[i])
+ #    train$target[i]
+ # }
+
+ # train$target <- as.integer(train$target)
+# write.csv(train,file = "trainuse.csv")
+ 
+  train_use <- train %>% filter(.,train$time_exit2<=57600)
+```
+
+
+
+```{r}
+ train_use <- train %>% filter(.,train$time_exit2>=54000)
+
+train_use %>% glimpse()
+```
+
+```{r}
+train_use %>% dim()
+train_use2 <- train_use[,c(5,6,7,8,14,15,16,17,22,23,24,25,26,29)]
+write.csv(train_use2,file = "really.csv")
+```
+
+```{r}
+use <- read.csv("really.csv")
+dim(use)
+glimpse(new)
+```
+
+```{r}
+
+new=use[sample(1:nrow(use),0000,replace = F),]
+set.seed(16)
+train.index <- createDataPartition(new$target,p = .75, list = FALSE)
+new_train <- new[train.index,]
+new_test <- new[-train.index,]
+
+set.seed(16)
+model1 <- randomForest(target~.,data = new_train[,c(2,3,4,5,6,7,8,9,11,12,13,14,15)],ntree=500,importance=TRUE)
+
+
+model1_pre <- predict(model1,new_test[,c(2,3,4,5,6,7,8,9,11,12,13,14,15)],type = "response")
+model1_pre <- ifelse(model1_pre>0.5,1,0)
+error1 <- mean(model1_pre!=new_test$target)
+1-error1
+saveRDS(model1,"st.rds")
+
+```
+```{r}
+
+
+test_use <- data.frame(test$X,test$time_entry2,test$time_exit2,test$x_entry2,test$y_entry2,test$time_entry1,test$time_exit1,test$x_entry1,test$y_entry1,test$trajectory_id,test$time_entry,test$time_exit,test$x_entry,test$y_entry,test$target)
+names(train_use2)
+names(train_use2)
+names(test_use) <-
+   c(
+   "X",
+   "time_entry"  ,
+   "time_exit"  ,
+   "x_entry",
+   "y_entry",
+   "time_entry1"   ,
+   "time_exit1"  ,
+   "x_entry1"     ,
+   "y_entry1"    ,
+   "trajectory_id2" ,
+   "time_entry2"  ,
+   "time_exit2"   ,
+   "x_entry2"  ,
+   "y_entry2"    ,
+   "target"
+   )
+# test_use
+ write.csv(test_use,"reallyuse.csv")
+```
+```{r}
+test_use <- read.csv("reallyuse.csv")
+test_use_use=test_use[,-1]
+
+
+resultmodel1 <- predict(model1,test_use_use[,c(2,3,4,5,6,7,8,9,11,12,13,14,15)],type = "response")
+
+resultmodel1 <- as.integer(ifelse(resultmodel1>0.5,1,0))
+table(resultmodel1)
+
+
+sub1 <- test_use_use
+sub1$result <- resultmodel1
+
+sub11 <- sub1[,c(10,15,16)]
+glimpse(sub11)
+```
+
+```{r}
+for (i in 1:nrow(sub11) )
+   {
+   
+   sub11$target[i] <- replace(sub11$target[i],sub11$result[i]) 
+  sub11$target[i]
+   
+   
+
+}
+
+
+
+sub111 <- sub11[,1:2]
+names(sub111) <- c("id","target")
+# sub111 %>% write.csv(.,file = "sub111.csv")
+
+strong <- read.csv("substrongrandom.csv")
+sub111$target <- sub11[,2]
+names(sub111) <- c("id","target")
+write.csv(sub111,file = "sub222.csv")
+
+check <- read.csv("sub111.csv")
+```
+```{r}
+fill <- ft$target[match(ft$trajectory_id,test_use_use$trajectory_id2)]
+ft$target
+test_use_use$target <- fill
+c1 <- check[match(strong$id,check$id),] %>% as.data.frame()
+which(c1$target==strong$target)
+```
+```{r}
+write.csv(test_use_use,"reallyuseuse.csv")
+
+
+```
+
+```{r}
+sub3 <- read.csv("reallyuseuse.csv")
+sub3=sub3[,-1]
+
+set.seed(16)
+modelpre3 <- predict(model1,sub3[,c(2,3,4,5,6,7,8,9,11,12,13,14,15)],type = "response")
+modelpre3 <- ifelse(modelpre3>0.5,1,0)
+table(modelpre3)
+sub33=sub3[,c(10,15)]
+sub33$result <- modelpre3
+```
+
+```{r}
+sub3 <- read.csv("reallyuseuse.csv")
+sub3=sub3[,-1]
+
+set.seed(16)
+modelpre3 <- predict(model1,sub3[,c(2,3,4,5,6,7,8,9,11,12,13,14,15)],type = "response")
+modelpre3 <- ifelse(modelpre3>0.5,1,0)
+table(modelpre3)
+sub33=sub3[,c(10,15)]
+sub33$result <- modelpre3
+for (i in 1:nrow(sub33) )
+   {
+   
+   sub33$target[i] <- replace(sub33$target[i],sub33$result[i]) 
+  sub33$target[i]
+   
+   
+
+}
+names(sub33)=c("id","target")
+head(sub33)
+write.csv(sub33,file = "suiyuan.csv")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+rang1
+subf <- read.csv("reallyuseuse.csv")
+subf=subf[,-1]
+subf=n
+# set.seed(16)
+ss <- predict(ranger3,subf[,c(4,5,8,9,11,12,13,14,15,16,17)],type = "response")
+
+
+gchi <- ifelse(ss$predictions>0.5,1,0)
+
+gchi %>% table()
+sub44=sub4[,c(10,15)]
+sub44$result <- rg4_sub
+for (i in 1:nrow(sub44) )
+   {
+
+   sub44$target[i] <- replace(sub44$target[i],sub44$result[i])
+  sub44$target[i]
+
+
+
+}
+sub44=sub44[,1:2]
+names(sub44)=c("id","target")
+head(sub44)
+write.csv(sub44,file = "suiyuan--sub44.csv")
+```
+
+```{r}
+# rang2
+suba <- read.csv("reallyuseuse.csv")
+suba=suba[,-1]
+ n=suba
+ suba=n
+ 
+ glimpse(suba)
+set.seed(16)
+sp <- predict(ranger3,suba[,c(4,5,8,9,11,12,13,14,15,16,17)],type = "response")
+ss <- ifelse(sp$predictions>0.5,1,0)
+table(ss)
+sub55=sub5[,c(10,15)]
+sub55$result <- rg5_sub
+for (i in 1:nrow(sub55) )
+   {
+
+   sub55$target[i] <- replace(sub55$target[i],sub55$result[i])
+  sub55$target[i]
+
+
+
+}
+sub55=sub55[,1:2]
+names(sub55)=c("id","target")
+head(sub55)
+write.csv(sub55,file = "suiyuan--sub55.csv")
+```
+```{r}
+
+
+#rang 3
+ sub6 <- read.csv("reallyuseuse.csv")
+ sub6=sub6[,-1]
+# n <- sub6
+# set.seed(16)
+ rg6 <- predict(ranger3,sub6[,c(4,5,8,9,11,12,13,14,15,16,17)],type = "response")
+# rg6_sub <- ifelse(rg6$predictions>0.5,1,0)
+# table(rg6_sub)
+# sub66=sub6[,c(10,15)]
+# sub66$result <- rg6_sub
+# for (i in 1:nrow(sub66) )
+#    {
+# 
+#    sub66$target[i] <- replace(sub66$target[i],sub66$result[i])
+#   sub66$target[i]
+# 
+# 
+# 
+# }
+# sub66=sub66[,1:2]
+# names(sub66)=c("id","target")
+# head(sub66)
+# write.csv(sub66,file = "suiyuan--sub66.csv")
+```
+
+
+```{r}
+caifuck <- predict(ranger3,fuck[,c(4,5,8,9,11,12,13,14,15,16,17)],type = "response")
+caifuck <- ifelse(rang >0.5,,0)
+table(caifuck)
+
+
+
+```
+
+```{r}
+# rang 4
+sub7 <- read.csv("reallyuseuse.csv")
+sub7=sub7[,-1]
+
+set.seed(16)
+rg7 <- predict(ranger1,sub7[,c(2,3,4,5,6,7,8,9,11,12,13,14,15)],type = "response")
+rg7_sub <- ifelse(rg7$predictions>0.5,1,0)
+table(rg7_sub)
+sub99=sub7[,c(10,15)]
+sub99$result <- rg7_sub
+for (i in 1:nrow(sub99) )
+   {
+
+   sub99$target[i] <- replace(sub99$target[i],sub99$result[i])
+  sub99$target[i]
+
+
+
+}
+sub99=sub99[,1:2]
+names(sub99)=c("id","target")
+head(sub99)
+write.csv(sub99,file = "suiyuan--sub99.csv")
+```
+
+```{r}
+# rang9
+
+ranger2
+
+
+sub9 <- read.csv("reallyuseuse.csv")
+sub9=sub9[,-1]
+
+set.seed(16)
+rg9 <- predict(ranger2,sub9[,c(4,5,8,9,11,12,13,14,15)],type = "response")
+rg9_sub <- ifelse(rg9$predictions>0.5,1,0)
+table(rg9_sub)
+sub99=sub9[,c(10,15)]
+sub99$result <- rg9_sub
+for (i in 1:nrow(sub99) )
+   {
+
+   sub99$target[i] <- replace(sub99$target[i],sub99$result[i])
+  sub99$target[i]
+
+
+
+}
+sub99=sub99[,1:2]
+names(sub99)=c("id","target")
+head(sub99)
+write.csv(sub99,file = "suiyuan--sub99.csv")
+```
+
+
+
+
+```{r}
+new=use[sample(1:nrow(use),5000,replace = F),]
+set.seed(16)
+train.index <- createDataPartition(new$target,p = .75, list = FALSE)
+new_train <- new[train.index,]
+new_test <- new[-train.index,]
+
+set.seed(16)
+model1 <- randomForest(target~.,data = new_train[,c(2,3,4,5,6,7,8,9,11,12,13,14,15)],ntree=500,importance=TRUE)
+
+
+model1_pre <- predict(model1,new_test[,c(2,3,4,5,6,7,8,9,11,12,13,14,15)],type = "response")
+model1_pre <- ifelse(model1_pre>0.5,1,0)
+error1 <- mean(model1_pre!=new_test$target)
+1-error1
+varImpPlot(model1)
+
+```
+
+
+
+
+```{r}
+set.seed(16)
+new=use
+# new=use[sample(1:nrow(use),67500,replace = F),]
+
+set.seed(16)
+train.index <- createDataPartition(new$target,p = .75, list = FALSE)
+new_train <- new[train.index,]
+new_test <- new[-train.index,]
+```
+```{R}
+# set.seed(16)
+# model1 <- randomForest(target~.,data = new_train[,c(4,5,8,9,11,12,13,14,15)],ntree=500,mtry=8,sampe_size=0.55,node_size=3,importance=TRUE)
+# 
+# 
+# model1_pre <- predict(model1,new_test[,c(4,5,8,9,11,12,13,14,15)],type = "response")
+# model1_pre <- ifelse(model1_pre>0.5,1,0)
+# error1 <- mean(model1_pre!=new_test$target)
+# 1-error1
+# varImpPlot(model1)
+
+
+```
+```{r}
+# model1
+set.seed(16)
+ranger1 <- ranger(
+    formula   = target ~ ., 
+    data      = new_train[,c(2,3,4,5,6,7,8,9,11,12,13,14,15)], 
+    num.trees = 500,
+    mtry      = 8,
+    sample.fraction = .55,
+    min.node.size=5,
+    importance = "impurity"
+  )
+
+rangerpre <- predict(ranger1,new_test[,c(2,3,4,5,6,7,8,9,11,12,13,14,15)],type = "response")
+rangerpre <- ifelse(rangerpre$predictions>0.5,1,0)
+errorrange <- mean(rangerpre!=new_test$target)
+1-errorrange
+
+```
+
+```{r}
+#model 2
+set.seed(16)
+ranger2 <- ranger(
+    formula   = target ~ ., 
+    data      = new_train[,c(,4,5,6,7,8,9,11,12,13,14,15)], 
+    num.trees = 500,
+    mtry      = 8,
+    sample.fraction = .55,
+    min.node.size=5,
+    importance = "impurity"
+  )
+
+rangerpre2 <- predict(ranger2,new_test[,c(,4,5,6,7,8,9,11,12,13,14,15)],type = "response")
+pre2 <- ifelse(rangerpre2$predictions>0.5,1,0)
+errorrange2 <- mean(pre2!=new_test$target)
+1-errorrange2
+
+```
+
+
+
+
+```{r}
+
+
+
+
+
+#model2
+set.seed(31)
+ranger2 <- ranger(
+    formula   = target ~ ., 
+    data      = new_train[,c(,4,5,6,7,8,9,11,12,13,14,15)], 
+    num.trees = 500,
+    mtry      = 8,
+    sample.fraction = .55,
+    min.node.size=5,
+    importance = "impurity"
+  )
+
+rangerpre2 <- predict(ranger2,new_test[,c(,4,5,6,7,8,9,11,12,13,14,15)],type = "response")
+pre2 <- ifelse(rangerpre2$predictions>0.5,1,0)
+errorrange2 <- mean(pre2!=new_test$target)
+1-errorrange2
+
+```
+
+
+
+
+
+```{r}
+rangerpr2$predictions
+rangerpre$predictions
+```
+
+```{r}
+
+set.seed(1)
+new=use[sample(1:nrow(use),10000,replace = F),]
+
+train.index <- createDataPartition(new$target,p = .75, list = FALSE)
+new_train <- new[train.index,]
+new_test <- new[-train.index,]
+
+set.seed(16)
+ranger2 <- ranger(
+    formula   = target ~ ., 
+    data      = new_train[,c(4,5,8,9,11,12,13,14,15)], 
+    num.trees = 500,
+    mtry      = 8,
+    sample.fraction = .55,
+    min.node.size=5,
+    importance = "impurity"
+  )
+
+rangerpre2 <- predict(ranger2,new_test[,c(4,5,8,9,11,12,13,14,15)],type = "response")
+pre2 <- ifelse(rangerpre2$predictions>0.5,1,0)
+errorrange2 <- mean(pre2!=new_test$target)
+1-errorrange2
+
+```
+
+```{r}
+
+ranger1$variable.importance %>% 
+  tidy() %>%
+  dplyr::arrange(desc(x)) %>%
+  dplyr::top_n(25) %>%
+  ggplot(aes(reorder(names, x), x)) +
+  geom_col() +
+  coord_flip() +
+  ggtitle("Top 25 important variables")
+
+```
+
+```{r}
+set.seed(16)
+rangerpre <- predict(ranger1,new_test[,c(4,5,8,9,11,12,13,14,15)],type = "response")
+rangerpre <- ifelse(rangerpre$predictions>0.5,1,0)
+errorrange <- mean(rangerpre!=new_test$target)
+1-errorrange
+# varImpPlot(ranger1)
+```
+
+mtry=5pr8
+```{r}
+# y2 x2 te2 tc2 y1 x1 y x  
+# y2 y1 x2 y x1 te2 x tc2
+```
+
+
+
+```{r}
+m2 <- tuneRF(
+  x          = new_train[,c(4,5,8,9,11,12,13,14)],
+  y          = new_train[,c(15)],
+  ntreeTry   = 500,
+  mtryStart  = 5,
+  stepFactor = 1.,
+  improve    = 0.01,
+  trace      = FALSE      # to not show real-time progress 
+)
+```
+
+
+
+
+```{r}
+hyper_grid <- expand.grid(
+  mtry       = seq(1, 8, by = 1),
+  node_size  = seq(3, 9, by = 2),
+  sampe_size = c(.55, .632, .70, .80),
+  OOB_RMSE   = 0
+)
+
+# total number of combinations
+nrow(hyper_grid)
+## [1] 96
+require(ranger)
+```
+
+```{r}
+for(i in 1:nrow(hyper_grid)) {
+  
+  # train model
+  model <- ranger(
+    formula         = target ~ ., 
+    data            = new_train[,c(4,5,8,9,11,12,13,14,15)], 
+    num.trees       = 500,
+    mtry            = hyper_grid$mtry[i],
+    min.node.size   = hyper_grid$node_size[i],
+    sample.fraction = hyper_grid$sampe_size[i],
+    seed            = 123
+  )
+  # 
+  # add OOB error to grid
+  hyper_grid$OOB_RMSE[i] <- sqrt(model$prediction.error)
+}
+
+hyper_grid %>% 
+  dplyr::arrange(OOB_RMSE) %>%
+  head(10)
+```
+
+
+
+```{r}
+rangerpr2$predictions %>% glimpse()
+rangerpre$predictions %>% glimpse()
+rangepre3$predictions %>% glimpse()
+
+fuck <- (rangerpr2$predictions+rangerpr2$predictions+rangepre3$predictions)/3
+fuck %>% glimpse()
+fuck <- ifelse(fuck>0.5,1,0)
+fuckerror <- mean(fuck!=new_test$target) 
+1-fuckerror
+```
+ 
+ 
+mtry
+<dbl>
+node_size
+<dbl>
+sampe_size
+<dbl>
+OOB_RMSE
+<dbl>
+1	8	9	0.550	0.2920794
+2	8	7	0.550	0.2925706
+3	7	9	0.632	0.2926086
+4	7	5	0.550	0.2926764
+
+##确定 mtry8  nodesize=3
+ 
+ 
+mtry
+<dbl>
+node_size
+<dbl>
+sampe_size
+<dbl>
+OOB_RMSE
+<dbl>
+1	7	3	0.550	0.2688907
+2	6	3	0.632	0.2693432
+3	7	7	0.550	0.2694628
+4	7	5	0.550	0.2695317
+
+
